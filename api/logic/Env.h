@@ -4,6 +4,7 @@
 #include "icons/IIconList.h"
 #include <QString>
 #include <QMap>
+#include <functional>
 
 #include "multimc_logic_export.h"
 

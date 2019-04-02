@@ -65,7 +65,8 @@ public:
     {
         BY_NOTHING,
         BY_USER,
-        BY_TIMEOUT
+        BY_TIMEOUT,
+        BY_DETECTED_MITM_ATTACK
     } m_aborted = BY_NOTHING;
 
     /**
@@ -79,6 +80,7 @@ public:
         STATE_PROCESSING_RESPONSE,
         STATE_FAILED_SOFT, //!< soft failure. this generally means the user auth details haven't been invalidated
         STATE_FAILED_HARD, //!< hard failure. auth is invalid
+        STATE_FAILED_SECURITY, //!< hard failure. auth is invalid
         STATE_SUCCEEDED
     } m_state = STATE_CREATED;
 
@@ -134,6 +136,7 @@ public
 slots:
     virtual bool abort() override;
     void abortByTimeout();
+    void abortByCertPinning();
     State state();
 protected:
     // FIXME: segfault disaster waiting to happen

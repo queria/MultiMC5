@@ -47,7 +47,7 @@ void YggdrasilTask::executeTask()
     netRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QByteArray requestData = doc.toJson();
-    m_netReply = ENV.qnam().post(netRequest, requestData);
+    m_netReply = m_account->m_auth_mgr.post(netRequest, requestData);
     connect(m_netReply, &QNetworkReply::finished, this, &YggdrasilTask::processReply);
     connect(m_netReply, &QNetworkReply::uploadProgress, this, &YggdrasilTask::refreshTimers);
     connect(m_netReply, &QNetworkReply::downloadProgress, this, &YggdrasilTask::refreshTimers);
@@ -82,6 +82,14 @@ bool YggdrasilTask::abort()
     return true;
 }
 
+void YggdrasilTask::abortByCertPinning()
+{
+    progress(timeout_max, timeout_max);
+    m_aborted = YggdrasilTask::BY_DETECTED_MITM_ATTACK;
+    m_netReply->abort();
+}
+
+
 void YggdrasilTask::abortByTimeout()
 {
     progress(timeout_max, timeout_max);
@@ -114,21 +122,48 @@ void YggdrasilTask::processReply()
         changeState(STATE_FAILED_SOFT, tr("Authentication operation timed out."));
         return;
     case QNetworkReply::OperationCanceledError:
-        changeState(STATE_FAILED_SOFT, tr("Authentication operation cancelled."));
+    {
+        if(m_aborted == YggdrasilTask::BY_DETECTED_MITM_ATTACK)
+        {
+            changeState(
+                STATE_FAILED_SECURITY,
+                tr(
+                    "<b>Connection to Mojang authentication server is unsafe!</b><br/>There might be a few causes for it:<br/>"
+                    "<ul>"
+                    "<li>You willingly compromised your system by installing something like MCLeaks. <a "
+                    "href=\"https://www.microsoft.com/en-us/download/details.aspx?id=38918\">Just get rid of it.</a></li>"
+                    "<li>Some device on your network is interfering with encrypted traffic. In that case, "
+                    "you have bigger worries than Minecraft not starting.</li>"
+                    "<li>Our fingerprint of the mojang.net certificate is outdated.</li>"
+                    "</ul>"
+                    "In any case, please tell us about it."
+                )
+            );
+        }
+        else
+        {
+            changeState(STATE_FAILED_SOFT, tr("Authentication operation cancelled."));
+        }
         return;
+    }
     case QNetworkReply::SslHandshakeFailedError:
+    {
         changeState(
-            STATE_FAILED_SOFT,
-            tr("<b>SSL Handshake failed.</b><br/>There might be a few causes for it:<br/>"
-               "<ul>"
-               "<li>You use Windows XP and need to <a "
-               "href=\"https://www.microsoft.com/en-us/download/details.aspx?id=38918\">update "
-               "your root certificates</a></li>"
-               "<li>Some device on your network is interfering with SSL traffic. In that case, "
-               "you have bigger worries than Minecraft not starting.</li>"
-               "<li>Possibly something else. Check the MultiMC log file for details</li>"
-               "</ul>"));
+            STATE_FAILED_SECURITY,
+            tr(
+                "<b>SSL Handshake failed.</b><br/>There might be a few causes for it:<br/>"
+                "<ul>"
+                "<li>You use Windows XP and need to <a "
+                "href=\"https://www.microsoft.com/en-us/download/details.aspx?id=38918\">update "
+                "your root certificates</a></li>"
+                "<li>Some device on your network is interfering with SSL traffic. In that case, "
+                "you have bigger worries than Minecraft not starting.</li>"
+                "<li>Possibly something else. Check the MultiMC log file for details</li>"
+                "</ul>"
+            )
+        );
         return;
+    }
     // used for invalid credentials and similar errors. Fall through.
     case QNetworkReply::ContentAccessDenied:
     case QNetworkReply::ContentOperationNotPermittedError:

@@ -21,6 +21,7 @@
 #include <QJsonObject>
 #include <QPair>
 #include <QMap>
+#include <QNetworkAccessManager>
 
 #include <memory>
 #include "AuthSession.h"
@@ -72,7 +73,7 @@ public: /* construction */
     explicit MojangAccount(const MojangAccount &other, QObject *parent) = delete;
 
     //! Default constructor
-    explicit MojangAccount(QObject *parent = 0) : QObject(parent) {};
+    explicit MojangAccount(QObject *parent = 0);
 
     //! Creates an empty account for the specified user name.
     static MojangAccountPtr createFromUsername(const QString &username);
@@ -139,6 +140,8 @@ signals:
     // TODO: better signalling for the various possible state changes - especially errors
 
 protected: /* variables */
+    QNetworkAccessManager m_auth_mgr;
+
     QString m_username;
 
     // Used to identify the client - the user can have multiple clients for the same account
@@ -170,6 +173,7 @@ private
 slots:
     void authSucceeded();
     void authFailed(QString reason);
+    void certPinningHandler(QNetworkReply * reply);
 
 private:
     void fillSession(AuthSessionPtr session);

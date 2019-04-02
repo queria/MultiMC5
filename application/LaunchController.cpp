@@ -97,7 +97,7 @@ void LaunchController::login()
         {
             // We'll need to validate the access token to make sure the account
             // is still logged in.
-            ProgressDialog progDialog(m_parentWidget);
+            LoginDialog progDialog(m_parentWidget);
             if (m_online)
             {
                 progDialog.setSkipButton(true, tr("Play Offline"));
@@ -157,6 +157,26 @@ void LaunchController::login()
             break;
         }
         case AuthSession::PlayableOffline:
+        {
+            // we ask the user for a player name
+            bool ok = false;
+            QString usedname = m_session->player_name;
+            QString name = QInputDialog::getText(m_parentWidget, tr("Player name"),
+                                                 tr("Choose your offline mode player name."),
+                                                 QLineEdit::Normal, m_session->player_name, &ok);
+            if (!ok)
+            {
+                tryagain = false;
+                break;
+            }
+            if (name.length())
+            {
+                usedname = name;
+            }
+            m_session->MakeOffline(usedname);
+            // offline flavored game from here :3
+        }
+        case AuthSession::SecurityError:
         {
             // we ask the user for a player name
             bool ok = false;

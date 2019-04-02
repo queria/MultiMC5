@@ -25,7 +25,8 @@ struct MULTIMC_LOGIC_EXPORT AuthSession
         Undetermined,
         RequiresPassword,
         PlayableOffline,
-        PlayableOnline
+        PlayableOnline,
+        SecurityError
     } status = Undetermined;
 
     User u;

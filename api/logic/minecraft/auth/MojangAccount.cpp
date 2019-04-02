@@ -18,6 +18,7 @@
 #include "MojangAccount.h"
 #include "flows/RefreshTask.h"
 #include "flows/AuthenticateTask.h"
+#include "net/URLConstants.h"
 
 #include <QUuid>
 #include <QJsonObject>
@@ -25,8 +26,15 @@
 #include <QRegExp>
 #include <QStringList>
 #include <QJsonDocument>
+#include <QSslKey>
+#include <QNetworkReply>
 
 #include <QDebug>
+
+MojangAccount::MojangAccount(QObject* parent) : QObject(parent)
+{
+    connect(&m_auth_mgr, &QNetworkAccessManager::encrypted, this, &MojangAccount::certPinningHandler);
+}
 
 MojangAccountPtr MojangAccount::loadFromJson(const QJsonObject &object)
 {
@@ -229,7 +237,16 @@ void MojangAccount::authFailed(QString reason)
     auto session = m_currentTask->getAssignedSession();
     // This is emitted when the yggdrasil tasks time out or are cancelled.
     // -> we treat the error as no-op
-    if (m_currentTask->state() == YggdrasilTask::STATE_FAILED_SOFT)
+    if (m_currentTask->state() == YggdrasilTask::STATE_FAILED_SECURITY)
+    {
+        if (session)
+        {
+            session->status = AuthSession::SecurityError;
+            session->auth_server_online = false;
+            fillSession(session);
+        }
+    }
+    else if (m_currentTask->state() == YggdrasilTask::STATE_FAILED_SOFT)
     {
         if (session)
         {
@@ -252,6 +269,24 @@ void MojangAccount::authFailed(QString reason)
     }
     m_currentTask.reset();
 }
+
+void MojangAccount::certPinningHandler(QNetworkReply* reply)
+{
+    if(!reply->url().host().endsWith("mojang.com"))
+    {
+        return;
+    }
+    QSslCertificate cert = reply->sslConfiguration().peerCertificate();
+
+    QString serverHash = QCryptographicHash::hash(cert.publicKey().toDer(),QCryptographicHash::Sha256).toBase64();
+
+    if (URLConstants::AUTH_HASH.compare(serverHash) != 0)
+    {
+        qDebug()<< "Public Key Hashes don't match, abort";
+        m_currentTask->abortByCertPinning();
+    }
+}
+
 
 void MojangAccount::fillSession(AuthSessionPtr session)
 {

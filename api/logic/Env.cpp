@@ -2,16 +2,18 @@
 #include "net/HttpMetaCache.h"
 #include "BaseVersion.h"
 #include "BaseVersionList.h"
+#include "tasks/Task.h"
+#include "meta/Index.h"
+#include "FileSystem.h"
+
 #include <QDir>
 #include <QCoreApplication>
 #include <QNetworkProxy>
 #include <QNetworkAccessManager>
 #include <QDebug>
-#include "tasks/Task.h"
-#include "meta/Index.h"
-#include "FileSystem.h"
+#include <QSslKey>
+#include <QNetworkReply>
 #include <QDebug>
-
 
 struct Env::Private
 {
