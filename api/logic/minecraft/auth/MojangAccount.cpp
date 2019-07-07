@@ -39,6 +39,7 @@ MojangAccountPtr MojangAccount::loadFromJson(const QJsonObject &object)
     }
 
     QString username = object.value("username").toString("");
+    QString offlineName = object.value("offlineName").toString(username);
     QString clientToken = object.value("clientToken").toString("");
     QString accessToken = object.value("accessToken").toString("");
 
@@ -83,6 +84,7 @@ MojangAccountPtr MojangAccount::loadFromJson(const QJsonObject &object)
         account->m_user = u;
     }
     account->m_username = username;
+    account->m_offlineName = offlineName;
     account->m_clientToken = clientToken;
     account->m_accessToken = accessToken;
     account->m_profiles = profiles;
@@ -100,6 +102,8 @@ MojangAccountPtr MojangAccount::createFromUsername(const QString &username)
     MojangAccountPtr account(new MojangAccount());
     account->m_clientToken = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
     account->m_username = username;
+    // FIXME(queria): is this correct place to pre-fill?
+    account->m_offlineName = username;
     return account;
 }
 
@@ -107,6 +111,7 @@ QJsonObject MojangAccount::saveToJson() const
 {
     QJsonObject json;
     json.insert("username", m_username);
+    json.insert("offlineName", m_offlineName);
     json.insert("clientToken", m_clientToken);
     json.insert("accessToken", m_accessToken);
 
@@ -257,6 +262,7 @@ void MojangAccount::fillSession(AuthSessionPtr session)
 {
     // the user name. you have to have an user name
     session->username = m_username;
+    session->offline_name = m_offlineName;
     // volatile auth token
     session->access_token = m_accessToken;
     // the semi-permanent client token
@@ -313,3 +319,10 @@ void MojangAccount::invalidateClientToken()
     m_clientToken = QUuid::createUuid().toString().remove(QRegExp("[{}-]"));
     emit changed();
 }
+
+void MojangAccount::setLastOfflineName(const QString &offlineName)
+{
+    m_offlineName = offlineName;
+    emit changed();
+}
+

@@ -40,6 +40,8 @@ struct MULTIMC_LOGIC_EXPORT AuthSession
     QString access_token;
     // profile name
     QString player_name;
+    // profile name for offline use
+    QString offline_name;
     // profile ID
     QString uuid;
     // 'legacy' or 'mojang', depending on account type

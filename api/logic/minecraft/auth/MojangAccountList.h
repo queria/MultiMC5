@@ -51,6 +51,10 @@ public:
 
         // Second column - Name
         NameColumn,
+
+        // Third column - last offline name
+        OfflineNameColumn,
+
     };
 
     explicit MojangAccountList(QObject *parent = 0);

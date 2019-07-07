@@ -194,6 +194,9 @@ QVariant MojangAccountList::data(const QModelIndex &index, int role) const
         case NameColumn:
             return account->username();
 
+        case OfflineNameColumn:
+            return account->offlineName();
+
         default:
             return QVariant();
         }
@@ -229,6 +232,9 @@ QVariant MojangAccountList::headerData(int section, Qt::Orientation orientation,
         case NameColumn:
             return tr("Name");
 
+        case OfflineNameColumn:
+            return tr("Last offline name");
+
         default:
             return QVariant();
         }
@@ -238,6 +244,9 @@ QVariant MojangAccountList::headerData(int section, Qt::Orientation orientation,
         {
         case NameColumn:
             return tr("The name of the version.");
+
+        case OfflineNameColumn:
+            return tr("Last name used for offline play");
 
         default:
             return QVariant();
@@ -256,7 +265,7 @@ int MojangAccountList::rowCount(const QModelIndex &) const
 
 int MojangAccountList::columnCount(const QModelIndex &) const
 {
-    return 2;
+    return 3;
 }
 
 Qt::ItemFlags MojangAccountList::flags(const QModelIndex &index) const

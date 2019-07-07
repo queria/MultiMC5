@@ -98,6 +98,8 @@ public: /* manipulation */
     std::shared_ptr<YggdrasilTask> login(AuthSessionPtr session, QString password = QString());
     void invalidateClientToken();
 
+    void setLastOfflineName(const QString &offlineName);
+
 public: /* queries */
     const QString &username() const
     {
@@ -123,6 +125,12 @@ public: /* queries */
     {
         return m_user;
     }
+
+    const QString &offlineName() const
+    {
+        return m_offlineName;
+    }
+
 
     //! Returns the currently selected profile (if none, returns nullptr)
     const AccountProfile *currentProfile() const;
@@ -160,6 +168,9 @@ protected: /* variables */
 
     // current task we are executing here
     std::shared_ptr<YggdrasilTask> m_currentTask;
+
+    // player name used for offline play last time
+    QString m_offlineName;
 
 protected: /* methods */
 

@@ -26,5 +26,8 @@ bool AuthSession::MakeOffline(QString offline_playername)
     session = "-";
     player_name = offline_playername;
     status = PlayableOffline;
+    // FIXME(queria): remember offline name for next time, but since MojangAccount is used for storing it ...
+    // ... do we even have to do this? does AuthSession persist (between Launch occassions?) ...
+    offline_name = offline_playername;
     return true;
 }

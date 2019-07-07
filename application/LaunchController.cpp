@@ -162,7 +162,7 @@ void LaunchController::login()
             QString usedname = m_session->player_name;
             QString name = QInputDialog::getText(m_parentWidget, tr("Player name"),
                                                  tr("Choose your offline mode player name."),
-                                                 QLineEdit::Normal, m_session->player_name, &ok);
+                                                 QLineEdit::Normal, m_session->offline_name, &ok);
             if (!ok)
             {
                 tryagain = false;
@@ -173,6 +173,8 @@ void LaunchController::login()
                 usedname = name;
             }
             m_session->MakeOffline(usedname);
+            // FIXME(queria): will setting it from here (and changed() inside there) be enough to save to json?
+            account->setLastOfflineName(usedname);
             // offline flavored game from here :3
         }
         case AuthSession::PlayableOnline:
